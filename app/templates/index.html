@@ -3,28 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <title>Pull Requests</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Define CSS classes for different actions */
+        .opened {
+            background-color: lightgreen;
+        }
+        .closed {
+            background-color: lightblue;
+        }
+        .push {
+            background-color: lightcoral;
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <h1 class="mb-4">Github Events (PUSH,PULL,MERGE only) render every 15 second</h1>
-        
-        <ul id="event_display" class="list-group">
-            <!-- Events will be populated here dynamically -->
-        </ul>
-    </div>
-
+    <h1>Pull, Push, Merge Requests Information</h1>
+    <ul id="pullRequests"></ul> <!-- Corrected: Added id attribute -->
     <script>
-        function fetchDataAndUpdate() {
-            fetch('/webhook/api/data')
+        function fetchingData() {
+            fetch('/webhook/api')
                 .then(response => response.json())
                 .then(data => {
-                    const ul = document.getElementById('event_display'); // Retrieve the ul element
+                    const ul = document.getElementById('pullRequests'); // Retrieve the ul element
                     ul.innerHTML = ''; // Clear previous content
                     data.forEach(pr => {
                         const li = document.createElement('li');
-                        li.classList.add('list-group-item'); // Add Bootstrap list-group-item class
                         let text = '';
                         if (pr.action === "opened") {
                             text = `"${pr.author}" submitted a pull request from "${pr.from_branch}" to "${pr.to_branch}" on "${pr.timestamp}"`;
@@ -41,7 +45,7 @@
         }
 
         // Call the function initially
-        fetchDataAndUpdate();
+        fetchingData();
 
         // Call the function every 15 seconds
         setInterval(fetchDataAndUpdate, 15000);
