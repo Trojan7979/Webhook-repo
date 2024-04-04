@@ -10,7 +10,7 @@ webhook = Blueprint('Webhook', __name__, url_prefix='/webhook')
 
 
 # Receiver end point
-@webhook.route('/', methods=["POST"])
+@webhook.route('/recipient', methods=["POST"])
 def recipient():
     print("Received a webhook request.")
     if request.headers['Content-Type'] == 'application/json':
@@ -49,30 +49,26 @@ def recipient():
             head_branch = payload.get('pull_request', {}).get('head', {}).get('ref')
             timestamp = payload.get('pull_request', {}).get('created_at')
             database.insert_one({
-                'request_id':pull_id,
-                'author':author,
-                'action':action,
-                'from_branch':head_branch,
-                'timestamp':timestamp
+                'request_id': pull_id,
+                'author': author,
+                'action': action,
+                'from_branch': head_branch,
+                'to_branch' : base_branch,
+                'timestamp': timestamp
             })
     return {}, 200
 
 #The UI will keep pulling data from MongoDB every 15 seconds and display the latest changes
 @webhook.route('/ui', methods=["GET"])
 def api_route():
-    pull_requests_data = collection.find()
+    pull_requests_data = database.find()
     return render_template('index.html', pull_requests=pull_requests_data)
 
 
 @webhook.route('/api')
 def get_data():
-    pull_requests = collection.find()
+    pull_requests = database.find()
     #ObjectId to strings
     pull_requests = [{**pr, '_id': str(pr['_id'])} for pr in pull_requests]
     return jsonify(pull_requests)
 
-
-
-from ..extensions import collection
-from flask import render_template
-webhook = Blueprint('Webhook', __name__, url_prefix='/webhook')
